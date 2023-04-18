@@ -1,5 +1,8 @@
 FROM python:3.9-slim-buster
 
+# Uncomment the line below to force a no-cache image rebuilt
+# RUN echo "force no-cache"
+
 ARG UID=1000
 ARG GID=1000
 ARG USER="cairo"
@@ -17,7 +20,7 @@ RUN apt-get update -qq \
   && python -m pip install --upgrade pip \
   && sudo apt install -y libgmp3-dev \
   && pip3 install ecdsa fastecdsa sympy \
-  # && pip3 install cairo-lang openzeppelin-cairo-contracts starknet-devnet==v0.5.0a0 starknet-py \
+  && pip3 install cairo-lang openzeppelin-cairo-contracts starknet-devnet==v0.5.0a0 starknet-py \
   && apt-get clean \
   && rm -rf /var/cache/apt/archives/* \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
@@ -46,16 +49,6 @@ echo "$USER ALL=NOPASSWD: ALL" >> /etc/sudoers.d/50-$USER
 
 USER cairo
 
-#Install software-properties-common to allow the command apt-add-repository to work
-# RUN sudo apt-get update -qq \
-# && sudo apt-get install -yq --no-install-recommends \
-#   software-properties-common \
-#   openssh-client \
-# && sudo apt-get clean \
-# && sudo rm -rf /var/cache/apt/archives/* \
-# && sudo rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-# && sudo truncate -s 0 /var/log/*log
-
 # Install Git Cli
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
 && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
@@ -69,7 +62,6 @@ RUN sudo apt install -y zsh imagemagick jq \
 # Enabling Virtual Environment as recommended in https://www.cairo-lang.org/docs/quickstart.html
 RUN python -m venv ~/cairo_venv && mkdir ~/.starknet_accounts && chown $USER:$USER ~/.starknet_accounts
 # && source ~/cairo_venv/bin/activate
-
 
 # ENV PATH /app/bin:$PATH
 ENV PATH /home/cairo/.local/bin:$PATH
@@ -96,4 +88,6 @@ RUN sudo npm install -g @vscode/vsce\
 # Copy the extension to the devcontainer extension folder
 && mkdir -p /home/cairo/.vscode-server/extensions \
 && cp -r ~/.cairo/vscode-cairo /home/cairo/.vscode-server/extensions
+
 # Find the Cairo 1 extension on the dev container extensions and configure the Language Server Path as "/home/cairo/.cairo/target/release/cairo-language-server". Then disable and enable the extension.
+

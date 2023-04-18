@@ -71,15 +71,3 @@ RUN python -m venv ~/cairo_venv && mkdir ~/.starknet_accounts && chown $USER:$US
 
 # ENV PATH /app/bin:$PATH
 ENV PATH /home/cairo/.local/bin:$PATH
-
-# Install Rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-&& . "$HOME/.cargo/env"
-
-# Install Cairo 1 Cli
-RUN git clone https://github.com/starkware-libs/cairo/ ~/.cairo \ 
-&& cd ~/.cairo \
-&& git checkout tags/v1.0.0-alpha.6 \
-&& /home/cairo/.cargo/bin/cargo build --all --release
-
-ENV PATH /home/cairo/.cairo/target/release:$PATH

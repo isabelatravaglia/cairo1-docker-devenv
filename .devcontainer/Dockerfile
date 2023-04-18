@@ -26,10 +26,11 @@ RUN apt-get update -qq \
   # && adduser --system --shell /sbin/nologin -u $APP_USER_UID $APP_USER \
   # && adduser $APP_USER $APP_GROUP 
 
-
-# Install dependencies
-RUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get -yq dist-upgrade && \
+# Install NodeJS and other dependencies
+RUN curl -sL https://deb.nodesource.com/setup_19.x | sudo -E bash - \
+&& apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get -yq dist-upgrade && \
   DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+    nodejs \
     libpq-dev \
     vim && \
     apt-get clean && \
@@ -69,6 +70,7 @@ RUN sudo apt install -y zsh imagemagick jq \
 RUN python -m venv ~/cairo_venv && mkdir ~/.starknet_accounts && chown $USER:$USER ~/.starknet_accounts
 # && source ~/cairo_venv/bin/activate
 
+
 # ENV PATH /app/bin:$PATH
 ENV PATH /home/cairo/.local/bin:$PATH
 
@@ -83,3 +85,15 @@ RUN git clone https://github.com/starkware-libs/cairo/ ~/.cairo \
 && /home/cairo/.cargo/bin/cargo build --all --release
 
 ENV PATH /home/cairo/.cairo/target/release:$PATH
+
+# Compile and Install Extension
+RUN sudo npm install -g @vscode/vsce\
+&& cd ~/.cairo/vscode-cairo \
+&& npm install \
+# add a fake License.txt file to bypass the prompt
+&& touch LICENSE.txt \
+&& vsce package \
+# Copy the extension to the devcontainer extension folder
+&& mkdir -p /home/cairo/.vscode-server/extensions \
+&& cp -r ~/.cairo/vscode-cairo /home/cairo/.vscode-server/extensions
+# Find the Cairo 1 extension on the dev container extensions and configure the Language Server Path as "/home/cairo/.cairo/target/release/cairo-language-server". Then disable and enable the extension.
